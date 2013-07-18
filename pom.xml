@@ -25,19 +25,19 @@ limitations under the License.
     </parent>
 
     <groupId>com.github.lucapino</groupId>
-    <artifactId>manifest-maven-plugin</artifactId>
+    <artifactId>dependency-maven-plugin</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
 
-    <name>Maven Manifest Plugin</name>
+    <name>Maven Dependency Plugin</name>
     <url>http://maven.apache.org</url>
-    <description>Maven plugin for altering the manifest of dependencies of project</description>
+    <description>Maven plugin for dealing with dependencies of project</description>
     <inceptionYear>2013</inceptionYear>
 
     <scm>
-        <connection>scm:git:git@github.com/lucapino/maven-manifest-plugin.git</connection>
-        <developerConnection>scm:git:git@github.com/lucapino/maven-manifest-plugin.git</developerConnection>
-        <url>git@github.com/lucapino/maven-manifest-plugin.git</url>
+        <connection>scm:git:git@github.com/lucapino/maven-dependency-plugin.git</connection>
+        <developerConnection>scm:git:git@github.com/lucapino/maven-dependency-plugin.git</developerConnection>
+        <url>git@github.com/lucapino/maven-dependency-plugin.git</url>
     </scm>
 
     <properties>
