@@ -20,19 +20,28 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
+import org.apache.maven.RepositoryUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.project.DefaultDependencyResolutionRequest;
+import org.apache.maven.project.DependencyResolutionException;
+import org.apache.maven.project.DependencyResolutionResult;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.project.ProjectDependenciesResolver;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.StringUtils;
+import org.sonatype.aether.RepositorySystemSession;
 
 /**
  * Goal which generate a version list.
@@ -64,6 +73,40 @@ public class ManifestMojo extends AbstractMojo {
      */
     private MavenProject project;
 
+    /**
+     * The current repository/network configuration of Maven.
+     *
+     * @parameter default-value="${repositorySystemSession}"
+     * @readonly
+     */
+    private RepositorySystemSession repoSession;
+
+    /**
+     * @component
+     */
+    protected ProjectDependenciesResolver projectDependenciesResolver;
+
+    public Set<Artifact> getDependencyArtifacts(MavenProject project, RepositorySystemSession repoSession,
+            ProjectDependenciesResolver projectDependenciesResolver) throws MojoExecutionException {
+
+        DefaultDependencyResolutionRequest dependencyResolutionRequest = new DefaultDependencyResolutionRequest(project, repoSession);
+        DependencyResolutionResult dependencyResolutionResult;
+
+        try {
+            dependencyResolutionResult = projectDependenciesResolver.resolve(dependencyResolutionRequest);
+        } catch (DependencyResolutionException ex) {
+            throw new MojoExecutionException(ex.getMessage(), ex);
+        }
+
+        Set artifacts = new LinkedHashSet();
+        if (dependencyResolutionResult.getDependencyGraph() != null
+                && !dependencyResolutionResult.getDependencyGraph().getChildren().isEmpty()) {
+            RepositoryUtils.toArtifacts(artifacts, dependencyResolutionResult.getDependencyGraph().getChildren(),
+                    Collections.singletonList(project.getArtifact().getId()), null);
+        }
+        return artifacts;
+    }
+
     @Override
     public void execute() throws MojoExecutionException {
         try {
@@ -75,15 +118,21 @@ public class ManifestMojo extends AbstractMojo {
                     artifactIds.add(artifactId);
                 }
             }
-            Set<Artifact> artifacts = project.getDependencyArtifacts();
+            Set<Artifact> artifacts = getDependencyArtifacts(project, repoSession, projectDependenciesResolver);
             for (Artifact artifact : artifacts) {
-                if (artifactIds.contains(artifact.getArtifactId())) {
+                if (artifactIds.isEmpty() || artifactIds.contains(artifact.getArtifactId())) {
+                    getLog().info("Processing artifact " + artifact);
                     JarFile jarFile = new JarFile(artifact.getFile());
                     Manifest manifest = jarFile.getManifest();
                     // write it to temp library
                     File tempFile = File.createTempFile("MANIFEST", null);
+                    String content = "";
+                    if (manifest == null) {
+                        manifest = new Manifest();
+                        manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
+                    }
                     manifest.write(new FileOutputStream(tempFile));
-                    String content = FileUtils.fileRead(tempFile, "UTF-8");
+                    content = FileUtils.fileRead(tempFile, "UTF-8");
                     FileUtils.fileWrite(tempFile, "Trusted-Library: true\n" + content);
 
                     String fileName = jarFile.getName();
