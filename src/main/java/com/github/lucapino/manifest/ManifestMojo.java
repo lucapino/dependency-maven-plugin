@@ -133,8 +133,8 @@ public class ManifestMojo extends AbstractMojo {
                     }
                     manifest.write(new FileOutputStream(tempFile));
                     content = FileUtils.fileRead(tempFile, "UTF-8");
-                    FileUtils.fileWrite(tempFile, "Trusted-Library: true\n" + content);
-
+                    FileUtils.fileWrite(tempFile, "Trusted-Library: true\nPermissions: all-permissions\n" + content);
+                    
                     String fileName = jarFile.getName();
                     String fileNameLastPart = fileName.substring(fileName.lastIndexOf(File.separator));
                     File destFile = new File(destDir, fileNameLastPart);
