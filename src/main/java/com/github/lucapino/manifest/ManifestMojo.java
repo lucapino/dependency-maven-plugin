@@ -18,8 +18,10 @@ package com.github.lucapino.manifest;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
@@ -41,7 +43,7 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.ProjectDependenciesResolver;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.StringUtils;
-import org.sonatype.aether.RepositorySystemSession;
+import org.eclipse.aether.RepositorySystemSession;
 
 /**
  * Goal which generate a version list.
@@ -114,9 +116,7 @@ public class ManifestMojo extends AbstractMojo {
             List<String> artifactIds = new ArrayList<String>();
             if (StringUtils.isNotEmpty(includeArtifactIds)) {
                 String[] artifactIdArray = includeArtifactIds.split(",");
-                for (String artifactId : artifactIdArray) {
-                    artifactIds.add(artifactId);
-                }
+                artifactIds.addAll(Arrays.asList(artifactIdArray));
             }
             Set<Artifact> artifacts = getDependencyArtifacts(project, repoSession, projectDependenciesResolver);
             for (Artifact artifact : artifacts) {
@@ -126,14 +126,14 @@ public class ManifestMojo extends AbstractMojo {
                     Manifest manifest = jarFile.getManifest();
                     // write it to temp library
                     File tempFile = File.createTempFile("MANIFEST", null);
-                    String content = "";
+                    String content;
                     if (manifest == null) {
                         manifest = new Manifest();
                         manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
                     }
                     manifest.write(new FileOutputStream(tempFile));
                     content = FileUtils.fileRead(tempFile, "UTF-8");
-                    FileUtils.fileWrite(tempFile, "Trusted-Library: true\n" + content);
+                    FileUtils.fileWrite(tempFile, "Trusted-Library: true\nPermissions: all-permissions\n" + content);
 
                     String fileName = jarFile.getName();
                     String fileNameLastPart = fileName.substring(fileName.lastIndexOf(File.separator));
@@ -151,7 +151,7 @@ public class ManifestMojo extends AbstractMojo {
                             //create a new entry to avoid ZipException: invalid entry compressed size
                             jos.putNextEntry(new JarEntry(entry.getName()));
                             byte[] buffer = new byte[4096];
-                            int bytesRead = 0;
+                            int bytesRead;
                             while ((bytesRead = is.read(buffer)) != -1) {
                                 jos.write(buffer, 0, bytesRead);
                             }
@@ -163,7 +163,9 @@ public class ManifestMojo extends AbstractMojo {
                     jos.close();
                 }
             }
-        } catch (Exception ex) {
+        } catch (IOException ex) {
+            throw new MojoExecutionException("Error in plugin", ex.getCause());
+        } catch (MojoExecutionException ex) {
             throw new MojoExecutionException("Error in plugin", ex.getCause());
         }
     }
