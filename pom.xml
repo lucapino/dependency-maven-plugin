@@ -30,14 +30,14 @@ limitations under the License.
     <packaging>maven-plugin</packaging>
 
     <name>Maven Dependency Plugin</name>
-    <url>https://github.com/lucapino/maven-dependency-plugin</url>
+    <url>https://github.com/lucapino/dependency-maven-plugin</url>
     <description>Maven plugin for dealing with dependencies of project</description>
     <inceptionYear>2013</inceptionYear>
 
     <scm>
-        <connection>scm:git:git@github.com/lucapino/maven-dependency-plugin.git</connection>
-        <developerConnection>scm:git:git@github.com/lucapino/maven-dependency-plugin.git</developerConnection>
-        <url>https://github.com/lucapino/maven-dependency-plugin</url>
+        <connection>scm:git:git@github.com/lucapino/dependency-maven-plugin.git</connection>
+        <developerConnection>scm:git:git@github.com/lucapino/dependency-maven-plugin.git</developerConnection>
+        <url>https://github.com/lucapino/dependency-maven-plugin</url>
     </scm>
 
     <properties>
