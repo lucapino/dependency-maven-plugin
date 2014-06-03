@@ -43,7 +43,7 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.ProjectDependenciesResolver;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.StringUtils;
-import org.eclipse.aether.RepositorySystemSession;
+import org.sonatype.aether.RepositorySystemSession;
 
 /**
  * Goal which generate a version list.
