@@ -20,7 +20,7 @@ Example plugin definition:
     <plugin>
         <groupId>com.github.lucapino</groupId>
         <artifactId>dependency-maven-plugin</artifactId>
-        <version>2.0.1</version>
+        <version>1.0.1</version>
     </plugin>
 
 [Build Status]:https://travis-ci.org/lucapino/dependency-maven-plugin
