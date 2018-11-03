@@ -13,7 +13,7 @@ Plugin documentation can be found at https://lucapino.github.io/dependency-maven
 
 Available goals:
 ================
-* **update** - updates a manifest, adding Trusted-Library and Permission
+* **update** - updates a manifest, adding Trusted-Library and Permission attributes
 
 Example plugin definition:
 ==========================
