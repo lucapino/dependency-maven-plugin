@@ -36,6 +36,9 @@ import org.apache.maven.RepositoryUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Component;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.DefaultDependencyResolutionRequest;
 import org.apache.maven.project.DependencyResolutionException;
 import org.apache.maven.project.DependencyResolutionResult;
@@ -46,46 +49,37 @@ import org.codehaus.plexus.util.StringUtils;
 import org.sonatype.aether.RepositorySystemSession;
 
 /**
- * Goal which generate a version list.
- *
- * @goal update
- *
+ * Goal which update a manifest, adding Trusted-Library and Permission
+ * attributes.
  */
+@Mojo(name = "update")
 public class ManifestMojo extends AbstractMojo {
 
     /**
      * Subset of comma separated artifactIds to modify
-     *
-     * @parameter
      */
+    @Parameter
     private String includeArtifactIds;
+
     /**
      * Destination directory
-     *
-     * @parameter
-     * @required
      */
+    @Parameter(required = true)
     private File destDir;
 
     /**
      * The Maven project
-     *
-     * @parameter default-value="${project}"
-     * @readonly
      */
+    @Parameter(defaultValue = "${project}", readonly = true)
     private MavenProject project;
 
     /**
      * The current repository/network configuration of Maven.
-     *
-     * @parameter default-value="${repositorySystemSession}"
-     * @readonly
      */
+    @Parameter(defaultValue = "${repositorySystemSession}", readonly = true)
     private RepositorySystemSession repoSession;
 
-    /**
-     * @component
-     */
+    @Component
     protected ProjectDependenciesResolver projectDependenciesResolver;
 
     public Set<Artifact> getDependencyArtifacts(MavenProject project, RepositorySystemSession repoSession,
@@ -113,7 +107,7 @@ public class ManifestMojo extends AbstractMojo {
     public void execute() throws MojoExecutionException {
         try {
             // creates an arraylist of string with included artifcatIds
-            List<String> artifactIds = new ArrayList<String>();
+            List<String> artifactIds = new ArrayList<>();
             if (StringUtils.isNotEmpty(includeArtifactIds)) {
                 String[] artifactIdArray = includeArtifactIds.split(",");
                 artifactIds.addAll(Arrays.asList(artifactIdArray));
@@ -139,33 +133,31 @@ public class ManifestMojo extends AbstractMojo {
                     String fileNameLastPart = fileName.substring(fileName.lastIndexOf(File.separator));
                     File destFile = new File(destDir, fileNameLastPart);
 
-                    JarOutputStream jos = new JarOutputStream(new FileOutputStream(destFile), new Manifest(new FileInputStream(tempFile)));
-                    Enumeration<JarEntry> entries = jarFile.entries();
+                    try (JarOutputStream jos = new JarOutputStream(new FileOutputStream(destFile), new Manifest(new FileInputStream(tempFile)))) {
+                        Enumeration<JarEntry> entries = jarFile.entries();
 
-                    while (entries.hasMoreElements()) {
-                        JarEntry entry = entries.nextElement();
-                        if (!entry.getName().toLowerCase().endsWith("manifest.mf")) {
-                            InputStream is = jarFile.getInputStream(entry);
-
-                            //jos.putNextEntry(entry);
-                            //create a new entry to avoid ZipException: invalid entry compressed size
-                            jos.putNextEntry(new JarEntry(entry.getName()));
-                            byte[] buffer = new byte[4096];
-                            int bytesRead;
-                            while ((bytesRead = is.read(buffer)) != -1) {
-                                jos.write(buffer, 0, bytesRead);
+                        while (entries.hasMoreElements()) {
+                            JarEntry entry = entries.nextElement();
+                            if (!entry.getName().toLowerCase().endsWith("manifest.mf")) {
+                                //create a new entry to avoid ZipException: invalid entry compressed size
+                                try (InputStream is = jarFile.getInputStream(entry)) {
+                                    //jos.putNextEntry(entry);
+                                    //create a new entry to avoid ZipException: invalid entry compressed size
+                                    jos.putNextEntry(new JarEntry(entry.getName()));
+                                    byte[] buffer = new byte[4096];
+                                    int bytesRead;
+                                    while ((bytesRead = is.read(buffer)) != -1) {
+                                        jos.write(buffer, 0, bytesRead);
+                                    }
+                                }
+                                jos.flush();
+                                jos.closeEntry();
                             }
-                            is.close();
-                            jos.flush();
-                            jos.closeEntry();
                         }
                     }
-                    jos.close();
                 }
             }
-        } catch (IOException ex) {
-            throw new MojoExecutionException("Error in plugin", ex.getCause());
-        } catch (MojoExecutionException ex) {
+        } catch (IOException | MojoExecutionException ex) {
             throw new MojoExecutionException("Error in plugin", ex.getCause());
         }
     }
