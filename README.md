@@ -11,6 +11,24 @@ Maven plugin for altering MANIFEST.MF, ading Trusted-Library and Permissions att
 
 Plugin documentation can be found at https://lucapino.github.io/dependency-maven-plugin
 
+*Maven 3.3.&ast; artifact*
+```
+<plugin>
+     <groupId>com.github.lucapino</groupId>
+     <artifactId>dependency-maven-plugin</artifactId>
+     <version>1.0.1</version>
+</plugin>
+```
+
+*Maven 3.5.&ast; artifact*
+```
+<plugin>
+     <groupId>com.github.lucapino</groupId>
+     <artifactId>dependency-maven-plugin</artifactId>
+     <version>2.0.0</version>
+</plugin>
+```
+
 Available goals:
 ================
 * **update** - updates a manifest, adding Trusted-Library and Permission attributes
