@@ -49,8 +49,7 @@ import org.codehaus.plexus.util.StringUtils;
 import org.eclipse.aether.RepositorySystemSession;
 
 /**
- * Goal which update a manifest, adding Trusted-Library and Permission
- * attributes.
+ * Goal which update a manifest, adding Trusted-Library and Permission attributes.
  */
 @Mojo(name = "update")
 public class ManifestMojo extends AbstractMojo {

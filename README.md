@@ -25,7 +25,7 @@ Plugin documentation can be found at https://lucapino.github.io/dependency-maven
 <plugin>
      <groupId>com.github.lucapino</groupId>
      <artifactId>dependency-maven-plugin</artifactId>
-     <version>2.0.0</version>
+     <version>2.0.1</version>
 </plugin>
 ```
 
